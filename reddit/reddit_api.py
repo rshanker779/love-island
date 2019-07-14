@@ -2,7 +2,6 @@
 https://www.reddit.com/dev/api/
 """
 import json
-import requests as r
 import os
 import praw
 
@@ -17,15 +16,7 @@ class BotParams:
     password = config_json["password"]
 
 
-class BaseUrl:
-    url = "http://reddit.com/api/v1/"
-
-
-class MeEndpoints(BaseUrl):
-    me_endpoint = BaseUrl.url + "me/"
-
-
-def main():
+def get_authenticated_reddit_connection():
     reddit = praw.Reddit(
         client_id=BotParams.client_id,
         client_secret=BotParams.client_secret,
@@ -33,10 +24,12 @@ def main():
         username=BotParams.user_name,
         password=BotParams.password,
     )
-    for post in reddit.subreddit("LoveIslandTV").hot(limit=10):
-        print(post)
-    return
+    for _ in reddit.subreddit("python").hot(limit=1):
+        # This line may seem pointless, but this requests will throw an
+        # error if permissioning hasn't worked.
+        pass
+    return reddit
 
 
 if __name__ == "__main__":
-    main()
+    get_authenticated_reddit_connection()
