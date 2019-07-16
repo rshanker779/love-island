@@ -17,26 +17,43 @@ class Constants:
 
 
 def main():
+    Session = li_model.get_session_and_create_databse()
     searchstr = "Episode"
     reddit = get_authenticated_reddit_connection()
-    found_episodes = set()
-    found_dates = set()
-    session = li_model.Session()
-    for submission in reddit.subreddit(Constants.love_island_subreddit).search(
+    authors = set()
+    submissions = set()
+    relevant_submissions = reddit.subreddit(Constants.love_island_subreddit).search(
         searchstr, sort="relevance", syntax="lucene", limit=None
-    ):
+    )
+    for submission in relevant_submissions:
         episode_match = Constants.episode_title_match.match(submission.title)
         if episode_match is not None:
             episode_num = episode_match.group(1)
-            model_sumbission = li_model.Submission(title=submission.title)
-            session.add(model_sumbission)
-            found_episodes.add(episode_num)
-            found_dates.add(submission.created_utc)
+            model_sumbission = li_model.LoveIslandSumbission(
+                id=submission.id,
+                title=submission.title,
+                author_fullname=submission.author.fullname,
+                author_flair_text=submission.author_flair_text,
+                created_utc=datetime.fromtimestamp(submission.created_utc),
+                distinguished=submission.distinguished,
+                permalink=submission.permalink,
+                score=submission.score,
+                self_text=submission.selftext,
+                episode_number=episode_num,
+            )
+            author = li_model.Author(
+                fullname=submission.author.fullname, name=submission.author.name
+            )
+            authors.add(author)
+            submissions.add(model_sumbission)
+    session = Session()
+
+    session.add_all(authors)
     session.commit()
-    if found_episodes - set(
-        str(i) for i in range(max(int(i) for i in found_episodes) + 1)
-    ):
-        return
+    session = Session()
+    session.add_all(submissions)
+    # session.add(author)
+    session.commit()
 
 
 if __name__ == "__main__":
