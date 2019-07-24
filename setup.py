@@ -33,7 +33,7 @@ setup(
     packages=find_packages(),
     entry_points={},
     test_suite="tests",
-    dependency_links=[
+    dependency_llove_island_redditinks=[
         "git+https://rshanker779@github.com/rshanker779/rshanker779_common.git#egg=rshanker779_common"
     ],
 )
