@@ -149,7 +149,7 @@ def get_islander_information(series=5):
             islander_df = df
             islander_df[["first_name", "last_name"]] = islander_df[
                 "Islander"
-            ].str.split(" ", expand=True)
+            ].str.split(" ", expand=True, n=2)
             return islander_df
     return pd.DataFrame()
 
