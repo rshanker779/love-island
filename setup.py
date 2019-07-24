@@ -1,0 +1,39 @@
+from setuptools import setup, find_packages
+
+print(
+    """
+Currently ssh cloning of a remote is not supported by setuptools.
+To fix this run "pip install -e git+git://<repo_url>"
+or "pip install -e git+ssh://git@bitbucket.org/rshanker779/rshanker779_common.git#egg=rshanker779_common"
+"""
+)
+setup(
+    name="python_files",
+    version="1.0.0",
+    author="rshanker779",
+    author_email="rshanker779@gmail.com",
+    description="Variety of python projects",
+    license="MIT",
+    python_requires=">=3.5",
+    install_requires=[
+        "black",
+        "nltk",
+        "pandas",
+        "pre-commit",
+        "praw",
+        "psaw",
+        "psycopg2",
+        "requests",
+        "rshanker779_common",
+        "spacy",
+        "sqlalchemy",
+        "tqdm",
+        "coverage",
+    ],
+    packages=find_packages(),
+    entry_points={},
+    test_suite="tests",
+    dependency_links=[
+        "git+https://rshanker779@github.com/rshanker779/rshanker779_common.git#egg=rshanker779_common"
+    ],
+)

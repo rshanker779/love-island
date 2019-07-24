@@ -59,7 +59,6 @@ class Comment(Base):
     depth = Column(Integer)
     downs = Column(Integer)
     gilded = Column(Integer)
-    # TODO add appropriate constraint
     parent_id = Column(String)
     permalink = Column(String)
     score = Column(Integer)
