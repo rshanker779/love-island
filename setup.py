@@ -1,12 +1,5 @@
 from setuptools import setup, find_packages
 
-print(
-    """
-Currently ssh cloning of a remote is not supported by setuptools.
-To fix this run "pip install -e git+git://<repo_url>"
-or "pip install -e git+ssh://git@bitbucket.org/rshanker779/rshanker779_common.git#egg=rshanker779_common"
-"""
-)
 setup(
     name="python_files",
     version="1.0.0",
