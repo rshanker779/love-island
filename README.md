@@ -1,4 +1,4 @@
-https://travis-ci.com/rshanker779/love_island.svg?branch=master
+[![Build Status](https://travis-ci.com/rshanker779/love_island.svg?branch=master)](https://travis-ci.com/rshanker779/love_island)
 
 #Packages
 The package reddit has files to connect to reddit api, currently via praw
