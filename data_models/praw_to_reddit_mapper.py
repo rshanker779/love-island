@@ -1,10 +1,15 @@
 from praw.models import Comment, Submission, Redditor
 import data_models.reddit_model as internal_model
 from datetime import datetime
+from typing import Type
 
 
-def get_comment(comment: Comment) -> internal_model.Comment:
-    return internal_model.Comment(
+def get_comment(
+    comment: Comment,
+    comment_class: Type[internal_model.Comment] = internal_model.Comment,
+    **kwargs
+) -> internal_model.Comment:
+    return comment_class(
         id=comment.id,
         submission_id=comment.submission.id,
         author_id=comment.author.id,
@@ -23,11 +28,16 @@ def get_comment(comment: Comment) -> internal_model.Comment:
         score=comment.score,
         score_hidden=comment.score_hidden,
         ups=comment.ups,
+        **kwargs
     )
 
 
-def get_submission(submission: Submission) -> internal_model.Submission:
-    return internal_model.Submission(
+def get_submission(
+    submission: Submission,
+    submission_class: Type[internal_model.Submission] = internal_model.Submission,
+    **kwargs
+) -> internal_model.Submission:
+    return submission_class(
         id=submission.id,
         fullname=submission.fullname,
         title=submission.title,
@@ -38,6 +48,7 @@ def get_submission(submission: Submission) -> internal_model.Submission:
         permalink=submission.permalink,
         score=submission.score,
         self_text=submission.selftext,
+        **kwargs
     )
 
 
