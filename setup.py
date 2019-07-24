@@ -11,6 +11,7 @@ setup(
     install_requires=[
         "black",
         "nltk",
+        "lxml",
         "pandas",
         "pre-commit",
         "praw",
