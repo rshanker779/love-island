@@ -27,7 +27,10 @@ setup(
     packages=find_packages(),
     entry_points={},
     test_suite="tests",
-    dependency_llove_island_redditinks=[
+    dependency_links=[
         "git+https://rshanker779@github.com/rshanker779/rshanker779_common.git#egg=rshanker779_common"
     ],
+)
+print(
+    "Note spacy model must also be downloaded with the command 'python -m spacy download en_core_web_sm'"
 )
