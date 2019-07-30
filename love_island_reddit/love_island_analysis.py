@@ -1,9 +1,9 @@
 import love_island_reddit.love_island_model as li_model
 import os
 from sqlalchemy import text
-from collections import Counter
 import pandas as pd
-
+import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 aggregated_data_file_name = "comments.csv"
 data_path = os.path.dirname(__file__)
 aggregated_data_file_path = os.path.join(data_path, aggregated_data_file_name)
@@ -12,7 +12,7 @@ regenerate_data = False
 
 def main():
     if not regenerate_data and os.path.isfile(aggregated_data_file_path):
-        df = pd.read_csv(aggregated_data_file_path)
+        df = pd.read_csv(aggregated_data_file_path, index_col=0)
     else:
         df = generate_data()
     # TODO
@@ -23,7 +23,9 @@ def main():
     # most hated islander
     # most loved islander
     # Keyword analysis
-    df.plot()
+    count_by_name_df = df.groupby('first_name').count().sort_values('id')
+    fig = go.Figure(go.Pie(labels=count_by_name_df.index, values=count_by_name_df['id']))
+    fig.show()
     return
 
 
