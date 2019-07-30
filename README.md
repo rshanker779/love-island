@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/rshanker779/love_island.svg?branch=master)](https://travis-ci.com/rshanker779/love_island)
+[![Build Status](https://travis-ci.com/rshanker779/love-island.svg?branch=master)](https://travis-ci.com/rshanker779/love-island)
 
 # Project
 This project is designed to collect reddit comments for selected posts on the LoveIslandTV on the love island subreddit, 
