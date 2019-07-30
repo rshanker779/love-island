@@ -12,6 +12,7 @@ setup(
         "black",
         "nltk",
         "lxml",
+        "matplotlib",
         "pandas",
         "pre-commit",
         "praw",

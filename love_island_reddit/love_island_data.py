@@ -105,10 +105,10 @@ def get_new_comments(
         session.add_all({i for i in inserts.authors if i.id not in existing_authors})
         session.commit()
         existing_authors |= {i.id for i in inserts.authors}
-        session = db_session()
+        # session = db_session()
         session.add_all(inserts.submissions)
         session.commit()
-        session = db_session()
+        # session = db_session()
         session.add_all(inserts.comments)
         session.commit()
 
@@ -150,6 +150,10 @@ def get_islander_information(series=5):
             islander_df[["first_name", "last_name"]] = islander_df[
                 "Islander"
             ].str.split(" ", expand=True, n=2)
+            # Molly-Mae causes tokenization issues, so we replace with Molly
+            islander_df.loc[
+                islander_df["first_name"] == "Molly-Mae", "first_name"
+            ] = "Molly"
             return islander_df
     return pd.DataFrame()
 
@@ -178,25 +182,36 @@ def get_comment_mentions(db_session):
     nlp = spacy.load("en_core_web_sm")
     comments = session.query(li_model.LoveIslandComment).all()
     islanders = session.query(li_model.Islander).all()
-    existing_mentions = {
-        (i.islander_id, i.comment_id)
-        for i in session.query(li_model.CommentMention).all()
-    }
+    comment_mentions = session.query(li_model.CommentMention).all()
+    # #we assume if a comment is in mentions all mentions have been processed
+    existing_mentions = {i.comment_id for i in comment_mentions}
     islander_name_map = {i.first_name.lower(): i.id for i in islanders}
     mentions = set()
-    for comment in comments:
+    comments_to_process = {i for i in comments if i.id not in existing_mentions}
+    for comment in comments_to_process:
         doc = nlp(comment.body)
         islanders_mentioned = {i.text.lower() for i in doc} & islander_name_map.keys()
         for islander in islanders_mentioned:
             mention = li_model.get_comment_mention(
                 comment.id, islander_name_map[islander]
             )
-            # mention not in existing_mentions would be nicer- but we really on id to differentiate
-            # instances and id is generated when writing to sql
-            if (mention.islander_id, mention.comment_id) not in existing_mentions:
-                logger.info("Comment %s mentions %s", comment.body, islander)
-                mentions.add(mention)
+            logger.info("Comment %s mentions %s", comment.body, islander)
+            mentions.add(mention)
     session.add_all(mentions)
+    session.commit()
+    for phrase in li_model.catchphrases:
+        # session = db_session()
+        phrase_components = set(phrase.split(" "))
+        phrase = phrase.replace(" ", "_")
+        col_name = "contains_" + phrase
+        comments_to_process = {i for i in comments if getattr(i, col_name) is None}
+        for comment in comments_to_process:
+            doc = nlp(comment.body)
+            contains_phrase = bool({i.text for i in doc} & phrase_components)
+            if contains_phrase:
+                logger.info("Comment %s mentions %s", comment.body, phrase)
+            setattr(comment, col_name, contains_phrase)
+            session.add(comment)
     session.commit()
 
 

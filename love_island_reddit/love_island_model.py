@@ -1,13 +1,26 @@
-from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, ForeignKey, Float
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.schema import UniqueConstraint
 from rshanker779_common.logger import get_logger
+from sqlalchemy import Column, Integer, String, ForeignKey, Float, join, Boolean
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.schema import UniqueConstraint, CreateTable
 
 from data_models.model_utilities import create_database
-from data_models.reddit_model import Base, Submission, Author, Comment
+from data_models.reddit_model import Base, Submission, Comment, Author
 
 logger = get_logger(__name__)
+
+catchphrases = {
+    "talented",
+    "fanny flutters",
+    "message",
+    "young lady",
+    "salmon",
+    "bev",
+    "chaldish",
+    "categorically",
+    "50k",
+    "560",
+}
 
 
 class Islander(Base):
@@ -15,6 +28,14 @@ class Islander(Base):
     id = Column(Integer, primary_key=True)
     first_name = Column(String)
     last_name = Column(String)
+
+    def __hash__(self):
+        return hash(self.id)
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        return self.id == other.id
 
 
 class CommentMention(Base):
@@ -47,9 +68,13 @@ class LoveIslandComment(Comment):
     sentiment = Column(Float)
 
 
+for i in catchphrases:
+    i = "contains_" + i.replace(" ", "_")
+    setattr(LoveIslandComment, i, Column(Boolean))
+
 db_name = "love_island"
 user = "rohan"
-password = "super_secret_pass"
+password = "secret"
 eng = create_engine("postgresql://%s:%s@localhost/love_island" % (user, password))
 
 
