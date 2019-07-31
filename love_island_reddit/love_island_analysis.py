@@ -4,6 +4,7 @@ from sqlalchemy import text
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+
 aggregated_data_file_name = "comments.csv"
 data_path = os.path.dirname(__file__)
 aggregated_data_file_path = os.path.join(data_path, aggregated_data_file_name)
@@ -23,8 +24,10 @@ def main():
     # most hated islander
     # most loved islander
     # Keyword analysis
-    count_by_name_df = df.groupby('first_name').count().sort_values('id')
-    fig = go.Figure(go.Pie(labels=count_by_name_df.index, values=count_by_name_df['id']))
+    count_by_name_df = df.groupby("first_name").count().sort_values("id")
+    fig = go.Figure(
+        go.Pie(labels=count_by_name_df.index, values=count_xby_name_df["id"])
+    )
     fig.show()
     return
 
