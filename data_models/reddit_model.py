@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean,Float
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -72,3 +72,19 @@ class Comment(Base):
         if not isinstance(other, self.__class__):
             return False
         return self.id == other.id
+
+
+class Word(Base):
+    __tablename__='words'
+    id = Column(Integer, primary_key=True)
+    body = Column(String, nullable=False)
+    is_stop = Column(Boolean, nullable=False)
+    importance = Column(Float)
+
+    def __hash__(self):
+        return hash(self.body)
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        return self.body == other.body

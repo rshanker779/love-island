@@ -12,6 +12,7 @@ import spacy
 from datetime import datetime, timedelta
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import nltk
+import tqdm
 
 nltk.download("vader_lexicon")
 
@@ -53,12 +54,10 @@ def main():
     session = Session()
     existing_submissions = {i[0] for i in session.query(li_model.Submission.id).all()}
     session.commit()
-    session = Session()
     existing_authors = {i[0] for i in session.query(li_model.Author.id).all()}
     session.commit()
     searchstr = "Episode"
     reddit = get_authenticated_reddit_connection()
-    session = Session()
     existing_islanders = session.query(li_model.Islander).all()
     new_islanders = get_new_islanders(existing_islanders)
     session.add_all(new_islanders)
@@ -67,14 +66,15 @@ def main():
         searchstr, sort="relevance", syntax="lucene", limit=None
     )
     get_new_comments(
-        existing_authors, existing_submissions, relevant_submissions, Session
+        existing_authors, existing_submissions, relevant_submissions, session
     )
-    get_comment_mentions(Session)
-    compute_vader_sentiment_analysis_scores(Session)
+    get_comment_mentions_and_words(session)
+    compute_vader_sentiment_analysis_scores(session)
+    # get_words(Session)
 
 
 def get_new_comments(
-    existing_authors, existing_submissions, relevant_submissions, db_session
+    existing_authors, existing_submissions, relevant_submissions, session
 ):
     for submission in relevant_submissions:
         if datetime.fromtimestamp(submission.created_utc) > datetime.now() - timedelta(
@@ -100,15 +100,12 @@ def get_new_comments(
             inserts.add_author(author)
             inserts.add_submission(model_submission)
         # Separate sessions are to ensure db inserts done in order
-        session = db_session()
 
         session.add_all({i for i in inserts.authors if i.id not in existing_authors})
         session.commit()
         existing_authors |= {i.id for i in inserts.authors}
-        # session = db_session()
         session.add_all(inserts.submissions)
         session.commit()
-        # session = db_session()
         session.add_all(inserts.comments)
         session.commit()
 
@@ -172,35 +169,41 @@ def get_new_islanders(existing_islanders):
     return new_islander
 
 
-def get_comment_mentions(db_session):
+def get_comment_mentions_and_words(session):
     """
     We go through all our comments, tokenize with spacy,
     check if they mention an islander and put appropriate mapping in
     comment_mentions
     """
-    session = db_session()
     nlp = spacy.load("en_core_web_sm")
     comments = session.query(li_model.LoveIslandComment).all()
     islanders = session.query(li_model.Islander).all()
     comment_mentions = session.query(li_model.CommentMention).all()
+    existing_words = {i.body.lower() for i in session.query(li_model.Word).all()}
     # #we assume if a comment is in mentions all mentions have been processed
     existing_mentions = {i.comment_id for i in comment_mentions}
     islander_name_map = {i.first_name.lower(): i.id for i in islanders}
+    commention_mention_set = {(i.islander_id, i.comment_id) for i in comment_mentions}
     mentions = set()
-    comments_to_process = {i for i in comments if i.id not in existing_mentions}
-    for comment in comments_to_process:
+    comments_to_process = comments#{i for i in comments if i.id not in existing_mentions}
+    all_words = set()
+    for comment in tqdm.tqdm(comments_to_process):
         doc = nlp(comment.body)
+        comment_words = {li_model.Word(body=i.text.lower(), is_stop=i.is_stop) for i in doc if i.text.lower() not in existing_words}
+        all_words |=comment_words
         islanders_mentioned = {i.text.lower() for i in doc} & islander_name_map.keys()
         for islander in islanders_mentioned:
             mention = li_model.get_comment_mention(
                 comment.id, islander_name_map[islander]
             )
-            logger.info("Comment %s mentions %s", comment.body, islander)
-            mentions.add(mention)
+            if (mention.islander_id, mention.comment_id) not in commention_mention_set:
+                logger.info("Comment %s mentions %s", comment.body, islander)
+
+                mentions.add(mention)
+    session.add_all(all_words)
     session.add_all(mentions)
     session.commit()
     for phrase in li_model.catchphrases:
-        # session = db_session()
         phrase_components = set(phrase.split(" "))
         phrase = phrase.replace(" ", "_")
         col_name = "contains_" + phrase
@@ -215,8 +218,7 @@ def get_comment_mentions(db_session):
     session.commit()
 
 
-def compute_vader_sentiment_analysis_scores(db_session):
-    session = db_session()
+def compute_vader_sentiment_analysis_scores(session):
     comments = (
         session.query(li_model.LoveIslandComment)
         .filter(li_model.LoveIslandComment.sentiment.is_(None))
@@ -226,6 +228,7 @@ def compute_vader_sentiment_analysis_scores(db_session):
     for comment in comments:
         comment.sentiment = analyzer.polarity_scores(comment.body)["compound"]
     session.commit()
+
 
 
 if __name__ == "__main__":

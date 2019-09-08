@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.schema import UniqueConstraint, CreateTable
 
 from data_models.model_utilities import create_database
-from data_models.reddit_model import Base, Submission, Comment, Author
+from data_models.reddit_model import Base, Submission, Comment, Author, Word
 
 logger = get_logger(__name__)
 
@@ -74,7 +74,7 @@ for i in catchphrases:
 
 db_name = "love_island"
 user = "rohan"
-password = "secret"
+password = "test1"
 eng = create_engine("postgresql://%s:%s@localhost/love_island" % (user, password))
 
 
