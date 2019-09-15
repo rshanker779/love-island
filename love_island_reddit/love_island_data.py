@@ -185,12 +185,18 @@ def get_comment_mentions_and_words(session):
     islander_name_map = {i.first_name.lower(): i.id for i in islanders}
     commention_mention_set = {(i.islander_id, i.comment_id) for i in comment_mentions}
     mentions = set()
-    comments_to_process = comments#{i for i in comments if i.id not in existing_mentions}
+    comments_to_process = (
+        comments
+    )  # {i for i in comments if i.id not in existing_mentions}
     all_words = set()
     for comment in tqdm.tqdm(comments_to_process):
         doc = nlp(comment.body)
-        comment_words = {li_model.Word(body=i.text.lower(), is_stop=i.is_stop) for i in doc if i.text.lower() not in existing_words}
-        all_words |=comment_words
+        comment_words = {
+            li_model.Word(body=i.text.lower(), is_stop=i.is_stop)
+            for i in doc
+            if i.text.lower() not in existing_words
+        }
+        all_words |= comment_words
         islanders_mentioned = {i.text.lower() for i in doc} & islander_name_map.keys()
         for islander in islanders_mentioned:
             mention = li_model.get_comment_mention(
@@ -228,7 +234,6 @@ def compute_vader_sentiment_analysis_scores(session):
     for comment in comments:
         comment.sentiment = analyzer.polarity_scores(comment.body)["compound"]
     session.commit()
-
 
 
 if __name__ == "__main__":
